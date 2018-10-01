@@ -46,7 +46,7 @@ public class Kompetenzeinstufung {
         if (o == null || getClass() != o.getClass()) return false;
         Kompetenzeinstufung that = (Kompetenzeinstufung) o;
         return getKompetenzbereich() == that.getKompetenzbereich() &&
-                getKompetenzstufe() == that.getKompetenzstufe();
+                (getKompetenzstufe().ordinal() <= that.getKompetenzstufe().ordinal());
     }
 
     @Override

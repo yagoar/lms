@@ -10,12 +10,16 @@ import java.util.List;
 public class Laufbahnstufe {
 
     @Id
+    private Long id;
+
+    private int stufe;
+
     private String name;
 
-    @Embedded
+    @ElementCollection
     private List<Kompetenzeinstufung> pflichtKompetenzen;
 
-    @Embedded
+    @ElementCollection
     private List<Kompetenzeinstufung> optionalKompetenzen;
 
     public Laufbahnstufe(final String name, final List<Kompetenzeinstufung> pflichtKompetenzen, final List<Kompetenzeinstufung> optionalKompetenzen) {
@@ -49,5 +53,21 @@ public class Laufbahnstufe {
 
     public void setOptionalKompetenzen(final List<Kompetenzeinstufung> optionalKompetenzen) {
         this.optionalKompetenzen = optionalKompetenzen;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(final Long id) {
+        this.id = id;
+    }
+
+    public int getStufe() {
+        return stufe;
+    }
+
+    public void setStufe(final int stufe) {
+        this.stufe = stufe;
     }
 }

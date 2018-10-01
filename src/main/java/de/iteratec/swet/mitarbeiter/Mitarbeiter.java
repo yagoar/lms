@@ -1,7 +1,6 @@
 package de.iteratec.swet.mitarbeiter;
 
 import de.iteratec.swet.kompetenzstufen.Kompetenzeinstufung;
-import de.iteratec.swet.kompetenzstufen.Kompetenzstufe;
 
 import javax.persistence.*;
 import java.util.List;
@@ -15,7 +14,7 @@ public class Mitarbeiter {
 
     private String nachname;
 
-    @Embedded
+    @ElementCollection
     private List<Kompetenzeinstufung> kompetenzen;
 
     public Mitarbeiter(final String vorname, final String nachname) {
