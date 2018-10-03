@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,24 +26,44 @@ public class LaufbahnstufenServiceImpl implements LaufbahnstufenService {
     }
 
     @Override
-    public List<Laufbahnstufe> getMostFittingLaufbahnstufen(final List<Kompetenzeinstufung> kompetenzen) {
+    public List<Laufbahnstufe> getTopThreeLaufbahnstufen(final List<Kompetenzeinstufung> kompetenzen) {
         List<Laufbahnstufe> laufbahnstufen = new ArrayList<>();
-        getAll().forEach(laufbahnstufe -> {
-            boolean fulfillsMandatory = kompetenzen.containsAll(laufbahnstufe.getPflichtKompetenzen());
-            boolean fulfillsOptional = checkOptionalKompetenzen(laufbahnstufe.getOptionalKompetenzen(), kompetenzen);
-            if (fulfillsMandatory && fulfillsOptional) {
-                laufbahnstufen.add(laufbahnstufe);
-            }
-        });
-        return laufbahnstufen;
+        getAll().forEach(laufbahnstufe -> computeLaufbahnstufe(kompetenzen, laufbahnstufen, laufbahnstufe));
+
+        return sortAndGetTopThree(laufbahnstufen);
     }
 
-    private boolean checkOptionalKompetenzen(final List<Kompetenzeinstufung> optionalKompetenzen,
-                                              final List<Kompetenzeinstufung> givenKompetenzen) {
-        List<Kompetenzeinstufung> matchingKompetenzen =
-                optionalKompetenzen.stream().filter(givenKompetenzen::contains).collect(Collectors.toList());
+    private void computeLaufbahnstufe(final List<Kompetenzeinstufung> kompetenzen,
+                                      final List<Laufbahnstufe> laufbahnstufen, final Laufbahnstufe laufbahnstufe) {
 
-        return !matchingKompetenzen.isEmpty();
+        // Pflichtkompetenzen prüfen (nur erfüllt wenn alle Kompetenzen Übereinstimmen)
+        boolean fulfillsMandatory = kompetenzen.containsAll(laufbahnstufe.getPflichtKompetenzen());
+
+        // Optionale Kompetenzen prüfen (erfüllt wenn mindestens eine Kompetenz übereinstimmt)
+        List<Kompetenzeinstufung> matchingOptional =
+                filterOptionalKompetenzen(laufbahnstufe.getOptionalKompetenzen(), kompetenzen);
+        boolean fulfillsOptional = !matchingOptional.isEmpty();
+
+        if (fulfillsMandatory && fulfillsOptional) {
+            // Genaue Übereinstimmung berechnen für die spätere Sortierung
+            laufbahnstufe.setMaUebereinstimmung(
+                    (double) matchingOptional.size() / (double) laufbahnstufe.getOptionalKompetenzen().size());
+
+            laufbahnstufen.add(laufbahnstufe);
+        }
     }
 
+    private List<Kompetenzeinstufung> filterOptionalKompetenzen(final List<Kompetenzeinstufung> optionalKompetenzen,
+                                                                final List<Kompetenzeinstufung> givenKompetenzen) {
+        return optionalKompetenzen.stream()
+                .filter(givenKompetenzen::contains)
+                .collect(Collectors.toList());
+    }
+
+    private List<Laufbahnstufe> sortAndGetTopThree(List<Laufbahnstufe> matchingLaufbahnstufen) {
+        return matchingLaufbahnstufen.stream()
+                .sorted(Comparator.comparing(Laufbahnstufe::getStufe).thenComparing(Laufbahnstufe::getMaUebereinstimmung))
+                .limit(3)
+                .collect(Collectors.toList());
+    }
 }

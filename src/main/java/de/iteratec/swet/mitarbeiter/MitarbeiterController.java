@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -46,7 +47,12 @@ public class MitarbeiterController {
     @GetMapping("/{kuerzel}/laufbahnstufen")
     public List<Laufbahnstufe> getMitarbeiterLaufbahnstufen(@PathVariable String kuerzel) {
         LOGGER.info("got Mitarbeiter: {}", kuerzel);
-        return mitarbeiterService.getLaufbahnstufen(kuerzel);
+        try {
+            return mitarbeiterService.getLaufbahnstufen(kuerzel);
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage());
+            return new ArrayList<>();
+        }
     }
 
     @DeleteMapping("/{kuerzel}")

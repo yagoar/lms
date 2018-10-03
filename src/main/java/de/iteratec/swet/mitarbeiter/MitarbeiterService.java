@@ -18,5 +18,5 @@ public interface MitarbeiterService {
 
     Mitarbeiter setKompetenzen(String kuerzel, List<Kompetenzeinstufung> kompetenzen);
 
-    List<Laufbahnstufe> getLaufbahnstufen(String kuerzel);
+    List<Laufbahnstufe> getLaufbahnstufen(String kuerzel) throws Exception;
 }

@@ -56,8 +56,12 @@ public class MitarbeiterServiceImpl implements MitarbeiterService {
     }
 
     @Override
-    public List<Laufbahnstufe> getLaufbahnstufen(final String kuerzel) {
+    public List<Laufbahnstufe> getLaufbahnstufen(final String kuerzel) throws Exception {
         Mitarbeiter savedMitarbeiter = mitarbeiterRepository.findByKuerzel(kuerzel);
-        return laufbahnstufenService.getMostFittingLaufbahnstufen(savedMitarbeiter.getKompetenzen());
+        if (savedMitarbeiter.getKompetenzen().isEmpty()) {
+            throw new Exception("Keine Kompetenzeinstufungen für Mitarbeiter " + savedMitarbeiter.getKuerzel() +
+                    " hinterlegt.");
+        }
+        return laufbahnstufenService.getTopThreeLaufbahnstufen(savedMitarbeiter.getKompetenzen());
     }
 }

@@ -16,17 +16,17 @@ public class Laufbahnstufe {
 
     private String name;
 
+    @Enumerated(EnumType.STRING)
+    private Laufbahn laufbahn;
+
     @ElementCollection
     private List<Kompetenzeinstufung> pflichtKompetenzen;
 
     @ElementCollection
     private List<Kompetenzeinstufung> optionalKompetenzen;
 
-    public Laufbahnstufe(final String name, final List<Kompetenzeinstufung> pflichtKompetenzen, final List<Kompetenzeinstufung> optionalKompetenzen) {
-        this.name = name;
-        this.pflichtKompetenzen = pflichtKompetenzen;
-        this.optionalKompetenzen = optionalKompetenzen;
-    }
+    @Transient
+    private double maUebereinstimmung;
 
     public Laufbahnstufe() {
     }
@@ -69,5 +69,21 @@ public class Laufbahnstufe {
 
     public void setStufe(final int stufe) {
         this.stufe = stufe;
+    }
+
+    public Laufbahn getLaufbahn() {
+        return laufbahn;
+    }
+
+    public void setLaufbahn(final Laufbahn laufbahn) {
+        this.laufbahn = laufbahn;
+    }
+
+    public double getMaUebereinstimmung() {
+        return maUebereinstimmung;
+    }
+
+    public void setMaUebereinstimmung(final double maUebereinstimmung) {
+        this.maUebereinstimmung = maUebereinstimmung;
     }
 }
