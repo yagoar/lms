@@ -1,12 +1,14 @@
-package de.iteratec.swet.kompetenzstufen;
-
-import de.iteratec.swet.kompetenzbereiche.Kompetenzbereich;
+package de.iteratec.swet.kompetenzen;
 
 import javax.persistence.Embeddable;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import java.util.Objects;
 
+/**
+ * Repräsentiert den Zusammenhang zwischen Kompetenzbereich (z.B. SE) und Kompetenzstufe (z.B. GL). Wird für die Definition der
+ * Laufbahnstufen-Vorlagen und für den Kompetenzstand der Mitarbeiter verwendet
+ */
 @Embeddable
 public class Kompetenzeinstufung {
 
@@ -45,8 +47,13 @@ public class Kompetenzeinstufung {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Kompetenzeinstufung that = (Kompetenzeinstufung) o;
+
+        // Damit eine Kompetenzeinstufung A in einer Kompetenzeinstufung A "enthalten" ist müssen die Kompetenzbereiche
+        // gleich sein und der ordinale Wert der Kompetenzstufe Kompetenzeinstufung A niedrieger bzw. gleich wie die der Kompetenzeinstufung B
+        // Beispiel: SE-GL // SE-FU
+        // GL hat Ordinalwert 0, FU hat Ordinalwert 1, also ist SE-GL in SE-FU enthalten
         return getKompetenzbereich() == that.getKompetenzbereich() &&
-                (getKompetenzstufe().ordinal() <= that.getKompetenzstufe().ordinal());
+                getKompetenzstufe().ordinal() <= that.getKompetenzstufe().ordinal();
     }
 
     @Override

@@ -1,15 +1,17 @@
 package de.iteratec.swet.mitarbeiter;
 
-import de.iteratec.swet.kompetenzstufen.Kompetenzeinstufung;
-import de.iteratec.swet.laufbahnstufen.Laufbahnstufe;
+import de.iteratec.swet.kompetenzen.Kompetenzeinstufung;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * REST Controller für die Mitarbeiter Endpunkte
+ */
 @RestController
 @RequestMapping(value = "api/mitarbeiter")
 public class MitarbeiterController {
@@ -19,51 +21,97 @@ public class MitarbeiterController {
     @Autowired
     private MitarbeiterService mitarbeiterService;
 
+    @GetMapping("/{kuerzel}")
+    public ResponseEntity getMitarbeiter(@PathVariable String kuerzel) {
+        if (validateKuerzel(kuerzel)) return ResponseEntity.badRequest().build();
+        try {
+            return ResponseEntity.ok(mitarbeiterService.getMitarbeiter(kuerzel));
+        } catch (MitarbeiterNotFoundException e) {
+            LOGGER.error("Mitarbeiter with Kuerzel {} not found.", kuerzel);
+            return ResponseEntity.notFound().build();
+        }
+    }
+
     @PostMapping("/{kuerzel}")
-    public Mitarbeiter createMitarbeiter(@PathVariable String kuerzel, @RequestBody Mitarbeiter mitarbeiter) {
-        LOGGER.info("got Mitarbeiter: {}", mitarbeiter);
-        return mitarbeiterService.createMitarbeiter(kuerzel, mitarbeiter);
+    public ResponseEntity createMitarbeiter(@PathVariable String kuerzel, @RequestBody Mitarbeiter mitarbeiter) {
+        if (kuerzel == null || kuerzel.isEmpty()) {
+            LOGGER.error("Tried to create Mitarbeiter without Kuerzel");
+            return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.ok(mitarbeiterService.createMitarbeiter(kuerzel, mitarbeiter));
     }
 
     @PutMapping("/{kuerzel}")
-    public Mitarbeiter updateMitarbeiter(@PathVariable String kuerzel, @RequestBody Mitarbeiter mitarbeiter) {
-        LOGGER.info("got Mitarbeiter: {}", mitarbeiter);
-        return mitarbeiterService.updateMitarbeiter(kuerzel, mitarbeiter);
-    }
+    public ResponseEntity updateMitarbeiter(@PathVariable String kuerzel, @RequestBody Mitarbeiter mitarbeiter) {
+        if (validateKuerzel(kuerzel)) return ResponseEntity.badRequest().build();
 
-    @GetMapping("/{kuerzel}/kompetenzbereiche")
-    public List<Kompetenzeinstufung> getMitarbeiterKompetenzen(@PathVariable String kuerzel) {
-        LOGGER.info("got Mitarbeiter: {}", kuerzel);
-        return mitarbeiterService.getKompetenzen(kuerzel);
-    }
-
-    @PostMapping("/{kuerzel}/kompetenzbereiche")
-    public Mitarbeiter setMitarbeiterKompetenzen(@PathVariable String kuerzel,
-                                          @RequestBody List<Kompetenzeinstufung> kompetenzen) {
-        LOGGER.info("got Mitarbeiter: {}", kuerzel);
-        return mitarbeiterService.setKompetenzen(kuerzel, kompetenzen);
-    }
-
-    @GetMapping("/{kuerzel}/laufbahnstufen")
-    public List<Laufbahnstufe> getMitarbeiterLaufbahnstufen(@PathVariable String kuerzel) {
-        LOGGER.info("got Mitarbeiter: {}", kuerzel);
         try {
-            return mitarbeiterService.getLaufbahnstufen(kuerzel);
-        } catch (Exception e) {
-            LOGGER.error(e.getMessage());
-            return new ArrayList<>();
+            Mitarbeiter updatedMitarbeiter = mitarbeiterService.updateMitarbeiter(kuerzel, mitarbeiter);
+            LOGGER.info("Updated Mitarbeiter: {}", kuerzel);
+            return ResponseEntity.ok(updatedMitarbeiter);
+        } catch (MitarbeiterNotFoundException e) {
+            LOGGER.error("Mitarbeiter with Kuerzel {} not found.", kuerzel);
+            return ResponseEntity.notFound().build();
         }
     }
 
     @DeleteMapping("/{kuerzel}")
-    public void deleteMitarbeiter(@PathVariable String kuerzel) {
-        LOGGER.info("got Mitarbeiter: {}", kuerzel);
-        mitarbeiterService.deleteMitarbeiter(kuerzel);
+    public ResponseEntity deleteMitarbeiter(@PathVariable String kuerzel) {
+        if (validateKuerzel(kuerzel)) return ResponseEntity.badRequest().build();
+        try {
+            mitarbeiterService.deleteMitarbeiter(kuerzel);
+            return ResponseEntity.ok(null);
+        } catch (MitarbeiterNotFoundException e) {
+            LOGGER.error("Mitarbeiter with Kuerzel {} not found.", kuerzel);
+            return ResponseEntity.notFound().build();
+        }
     }
 
-    @GetMapping("/{kuerzel}")
-    public Mitarbeiter getMitarbeiter(@PathVariable String kuerzel) {
-        LOGGER.info("got Mitarbeiter: {}", kuerzel);
-        return mitarbeiterService.getMitarbeiter(kuerzel);
+    @GetMapping("/{kuerzel}/kompetenzbereiche")
+    public ResponseEntity getMitarbeiterKompetenzen(@PathVariable String kuerzel) {
+        if (validateKuerzel(kuerzel)) return ResponseEntity.badRequest().build();
+
+        try {
+            LOGGER.info("Getting Kompetenzen for Mitarbeiter: {}", kuerzel);
+            return ResponseEntity.ok(mitarbeiterService.getKompetenzen(kuerzel));
+        } catch (MitarbeiterNotFoundException e) {
+            LOGGER.error("Mitarbeiter with Kuerzel {} not found.", kuerzel);
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PostMapping("/{kuerzel}/kompetenzbereiche")
+    public ResponseEntity setMitarbeiterKompetenzen(@PathVariable String kuerzel,
+                                                    @RequestBody List<Kompetenzeinstufung> kompetenzen) {
+        if (validateKuerzel(kuerzel)) return ResponseEntity.badRequest().build();
+
+        try {
+            Mitarbeiter mitarbeiter = mitarbeiterService.setKompetenzen(kuerzel, kompetenzen);
+            LOGGER.info("Kompetenzen set for Mitarbeiter {}.", kuerzel);
+            return ResponseEntity.ok(mitarbeiter);
+        } catch (MitarbeiterNotFoundException e) {
+            LOGGER.error("Mitarbeiter with Kuerzel {} not found.", kuerzel);
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/{kuerzel}/laufbahnstufen")
+    public ResponseEntity getMitarbeiterLaufbahnstufen(@PathVariable String kuerzel) {
+        if (validateKuerzel(kuerzel)) return ResponseEntity.badRequest().build();
+        try {
+            return ResponseEntity.ok(mitarbeiterService.getLaufbahnstufen(kuerzel));
+        } catch (Exception e) {
+            LOGGER.error("Mitarbeiter with Kuerzel {} not found.", kuerzel);
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    private boolean validateKuerzel(@PathVariable final String kuerzel) {
+        if (kuerzel == null || kuerzel.isEmpty()) {
+            LOGGER.error("Tried to update Mitarbeiter without Kuerzel");
+            return true;
+        }
+        return false;
     }
 }

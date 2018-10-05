@@ -1,10 +1,16 @@
 package de.iteratec.swet.mitarbeiter;
 
-import de.iteratec.swet.kompetenzstufen.Kompetenzeinstufung;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import de.iteratec.swet.kompetenzen.Kompetenzeinstufung;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
 
 import javax.persistence.*;
 import java.util.List;
 
+/**
+ * Entität für einen Mitarbeiter
+ */
 @Entity
 public class Mitarbeiter {
     @Id
@@ -14,7 +20,9 @@ public class Mitarbeiter {
 
     private String nachname;
 
+    @JsonIgnore
     @ElementCollection
+    @LazyCollection(LazyCollectionOption.FALSE)
     private List<Kompetenzeinstufung> kompetenzen;
 
     public Mitarbeiter(final String vorname, final String nachname) {

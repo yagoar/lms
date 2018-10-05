@@ -1,6 +1,6 @@
 package de.iteratec.swet.laufbahnstufen;
 
-import de.iteratec.swet.kompetenzstufen.Kompetenzeinstufung;
+import de.iteratec.swet.kompetenzen.Kompetenzeinstufung;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,7 +28,17 @@ public class LaufbahnstufenServiceImpl implements LaufbahnstufenService {
     @Override
     public List<Laufbahnstufe> getTopThreeLaufbahnstufen(final List<Kompetenzeinstufung> kompetenzen) {
         List<Laufbahnstufe> laufbahnstufen = new ArrayList<>();
+
+        if (kompetenzen.isEmpty()) {
+            return laufbahnstufen;
+        }
+
         getAll().forEach(laufbahnstufe -> computeLaufbahnstufe(kompetenzen, laufbahnstufen, laufbahnstufe));
+
+        if (laufbahnstufen.isEmpty()) {
+            laufbahnstufen.add(getDefaultLaufbahnstufe());
+            return laufbahnstufen;
+        }
 
         return sortAndGetTopThree(laufbahnstufen);
     }
@@ -47,7 +57,7 @@ public class LaufbahnstufenServiceImpl implements LaufbahnstufenService {
         if (fulfillsMandatory && fulfillsOptional) {
             // Genaue Übereinstimmung berechnen für die spätere Sortierung
             laufbahnstufe.setMaUebereinstimmung(
-                    (double) matchingOptional.size() / (double) laufbahnstufe.getOptionalKompetenzen().size());
+                    (double) matchingOptional.size() * 100 / (double) laufbahnstufe.getOptionalKompetenzen().size());
 
             laufbahnstufen.add(laufbahnstufe);
         }
@@ -62,8 +72,14 @@ public class LaufbahnstufenServiceImpl implements LaufbahnstufenService {
 
     private List<Laufbahnstufe> sortAndGetTopThree(List<Laufbahnstufe> matchingLaufbahnstufen) {
         return matchingLaufbahnstufen.stream()
-                .sorted(Comparator.comparing(Laufbahnstufe::getStufe).thenComparing(Laufbahnstufe::getMaUebereinstimmung))
+                .sorted(Comparator.comparing(Laufbahnstufe::getStufe)
+                        .thenComparing(Laufbahnstufe::getMaUebereinstimmung)
+                        .reversed())
                 .limit(3)
                 .collect(Collectors.toList());
+    }
+
+    private Laufbahnstufe getDefaultLaufbahnstufe() {
+        return laufbahnstufeRepository.findByName("Junior");
     }
 }

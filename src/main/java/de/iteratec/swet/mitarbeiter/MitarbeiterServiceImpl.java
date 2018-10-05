@@ -1,6 +1,6 @@
 package de.iteratec.swet.mitarbeiter;
 
-import de.iteratec.swet.kompetenzstufen.Kompetenzeinstufung;
+import de.iteratec.swet.kompetenzen.Kompetenzeinstufung;
 import de.iteratec.swet.laufbahnstufen.Laufbahnstufe;
 import de.iteratec.swet.laufbahnstufen.LaufbahnstufenService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +18,8 @@ public class MitarbeiterServiceImpl implements MitarbeiterService {
     private LaufbahnstufenService laufbahnstufenService;
 
     @Override
-    public Mitarbeiter getMitarbeiter(final String kuerzel) {
-        return mitarbeiterRepository.findByKuerzel(kuerzel);
+    public Mitarbeiter getMitarbeiter(final String kuerzel) throws MitarbeiterNotFoundException {
+        return findMitarbeiter(kuerzel);
     }
 
     @Override
@@ -29,39 +29,43 @@ public class MitarbeiterServiceImpl implements MitarbeiterService {
     }
 
     @Override
-    public Mitarbeiter updateMitarbeiter(String kuerzel, Mitarbeiter mitarbeiter) {
-        Mitarbeiter savedMitarbeiter = mitarbeiterRepository.findByKuerzel(kuerzel);
+    public Mitarbeiter updateMitarbeiter(String kuerzel, Mitarbeiter mitarbeiter) throws MitarbeiterNotFoundException {
+        Mitarbeiter savedMitarbeiter = findMitarbeiter(kuerzel);
         savedMitarbeiter.setVorname(mitarbeiter.getVorname());
         savedMitarbeiter.setNachname(mitarbeiter.getNachname());
         return mitarbeiterRepository.save(savedMitarbeiter);
     }
 
     @Override
-    public void deleteMitarbeiter(final String kuerzel) {
-        Mitarbeiter savedMitarbeiter = mitarbeiterRepository.findByKuerzel(kuerzel);
+    public void deleteMitarbeiter(final String kuerzel) throws MitarbeiterNotFoundException {
+        Mitarbeiter savedMitarbeiter = findMitarbeiter(kuerzel);
         mitarbeiterRepository.delete(savedMitarbeiter);
     }
 
     @Override
-    public List<Kompetenzeinstufung> getKompetenzen(final String kuerzel) {
-        Mitarbeiter savedMitarbeiter = mitarbeiterRepository.findByKuerzel(kuerzel);
+    public List<Kompetenzeinstufung> getKompetenzen(final String kuerzel) throws MitarbeiterNotFoundException {
+        Mitarbeiter savedMitarbeiter = findMitarbeiter(kuerzel);
         return savedMitarbeiter.getKompetenzen();
     }
 
     @Override
-    public Mitarbeiter setKompetenzen(final String kuerzel, final List<Kompetenzeinstufung> kompetenzen) {
-        Mitarbeiter savedMitarbeiter = mitarbeiterRepository.findByKuerzel(kuerzel);
+    public Mitarbeiter setKompetenzen(final String kuerzel, final List<Kompetenzeinstufung> kompetenzen) throws MitarbeiterNotFoundException {
+        Mitarbeiter savedMitarbeiter = findMitarbeiter(kuerzel);
         savedMitarbeiter.setKompetenzen(kompetenzen);
         return mitarbeiterRepository.save(savedMitarbeiter);
     }
 
     @Override
-    public List<Laufbahnstufe> getLaufbahnstufen(final String kuerzel) throws Exception {
-        Mitarbeiter savedMitarbeiter = mitarbeiterRepository.findByKuerzel(kuerzel);
-        if (savedMitarbeiter.getKompetenzen().isEmpty()) {
-            throw new Exception("Keine Kompetenzeinstufungen für Mitarbeiter " + savedMitarbeiter.getKuerzel() +
-                    " hinterlegt.");
-        }
+    public List<Laufbahnstufe> getLaufbahnstufen(final String kuerzel) throws MitarbeiterNotFoundException {
+        Mitarbeiter savedMitarbeiter = findMitarbeiter(kuerzel);
         return laufbahnstufenService.getTopThreeLaufbahnstufen(savedMitarbeiter.getKompetenzen());
+    }
+
+    private Mitarbeiter findMitarbeiter(final String kuerzel) throws MitarbeiterNotFoundException {
+        Mitarbeiter savedMitarbeiter = mitarbeiterRepository.findByKuerzel(kuerzel);
+        if (savedMitarbeiter == null) {
+            throw new MitarbeiterNotFoundException("Mitarbeiter with Kuerzel " + kuerzel + " does not exist.");
+        }
+        return savedMitarbeiter;
     }
 }

@@ -7,6 +7,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * REST Controller für die Laufbahnstufen Endpunkte
+ */
 @RestController
 @RequestMapping(value = "api/laufbahnstufen")
 public class LaufbahnstufenController {

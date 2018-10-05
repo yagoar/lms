@@ -1,7 +1,9 @@
 package de.iteratec.swet.laufbahnstufen;
 
-
-import de.iteratec.swet.kompetenzstufen.Kompetenzeinstufung;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import de.iteratec.swet.kompetenzen.Kompetenzeinstufung;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
 
 import javax.persistence.*;
 import java.util.List;
@@ -19,14 +21,18 @@ public class Laufbahnstufe {
     @Enumerated(EnumType.STRING)
     private Laufbahn laufbahn;
 
+    @JsonIgnore
     @ElementCollection
+    @LazyCollection(LazyCollectionOption.FALSE) // Notwendig für den Zugriff auf die Kompetenzen im LaufbahnstufenService
     private List<Kompetenzeinstufung> pflichtKompetenzen;
 
+    @JsonIgnore
     @ElementCollection
+    @LazyCollection(LazyCollectionOption.FALSE)
     private List<Kompetenzeinstufung> optionalKompetenzen;
 
     @Transient
-    private double maUebereinstimmung;
+    private double maUebereinstimmung; // Verhältnis erfüllte optionale Kompetenzen zu mögliche optionale Kompetenzen
 
     public Laufbahnstufe() {
     }
